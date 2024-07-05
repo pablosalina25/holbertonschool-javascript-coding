@@ -7,7 +7,7 @@ const databasePath = process.argv[2];
 
 const server = http.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/plain');
-  
+
   if (req.url === '/') {
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
