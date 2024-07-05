@@ -1,19 +1,20 @@
 // Write a script that reads and prints the content of a file.
 
 #!/usr/bin/node
-
 const fs = require('fs');
 
-const filepath = process.argv[2];
-
-function Readfile (path) {
-  fs.readFile(path, 'utf-8', (err, data) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log(data);
-    }
-  });
+if (process.argv.length !== 3) {
+  console.error('Usage: ./0-readme.js <file_path>');
+  process.exit(1);
 }
 
-Readfile(filepath);
+const filePath = process.argv[2];
+
+fs.readFile(filePath, 'utf8', (err, data) => {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  
+  console.log(data);
+});
