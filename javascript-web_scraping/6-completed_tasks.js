@@ -1,39 +1,25 @@
 #!/usr/bin/node
-// A program that computes the number of tasks completed by user id.
+
 const request = require('request');
 
-const apiUrl = 'https://jsonplaceholder.typicode.com/todos';
+const url = process.argv[2];
 
-request(apiUrl, (error, response, body) => {
-  if (error) {
-    console.error('Error fetching data:', error);
-    return;
-  }
-
-  if (response.statusCode !== 200) {
-    console.error('Unexpected status code:', response.statusCode);
-    return;
-  }
-
-  try {
-    const todos = JSON.parse(body);
+function getCompletedTasks () {
+  request(url, { json: true }, (error, response, body) => {
+    if (error) {
+      console.log(error);
+      return;
+    }
     const completedTasks = {};
-
-    todos.forEach((todo) => {
-      if (todo.completed) {
-        if (completedTasks[todo.userId]) {
-          completedTasks[todo.userId]++;
-        } else {
-          completedTasks[todo.userId] = 1;
+    body.forEach(task => {
+      if (task.completed) {
+        if (!completedTasks[task.userId]) {
+          completedTasks[task.userId] = 0;
         }
+        completedTasks[task.userId]++;
       }
     });
-
-    Object.keys(completedTasks).forEach((userId) => {
-      console.log(`User ${userId} completed ${completedTasks[userId]} tasks`);
-    });
-
-  } catch (parseError) {
-    console.error('Error parsing JSON:', parseError.message);
-  }
-});
+    console.log(completedTasks);
+  });
+}
+getCompletedTasks();
