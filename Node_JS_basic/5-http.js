@@ -1,35 +1,58 @@
 // This program creates a small HTTP server using the http module.
 
 const http = require('http');
-const countStudents = require('./3-read_file_async');
+const fs = require('fs').promises;
+const url = require('url');
 
-const databasePath = process.argv[2];
+async function countStudents(path) {
+  return fs.readFile(path, 'utf8')
+    .then((data) => {
+      const str = data.toString();
+      const arr = str.split('\n').slice(1);
+      const filter = arr.filter((line) => line !== '');
+      const namesByField = {};
+      filter.forEach((line) => {
+        const elements = line.split(',');
+        const firstName = elements[0];
+        const field = elements[3];
 
-const server = http.createServer((req, res) => {
-  res.setHeader('Content-Type', 'text/plain');
-
-  if (req.url === '/') {
-    res.end('Hello Holberton School!');
-  } else if (req.url === '/students') {
-    countStudents(databasePath)
-      .then((data) => {
-        res.end(`List of students:\n${data}`);
-      })
-      .catch((error) => {
-        res.statusCode = 500;
-        res.end(`Error: ${error.message}`);
+        if (!namesByField[field]) {
+          namesByField[field] = [];
+        }
+        namesByField[field].push(firstName);
       });
-  } else {
-    res.statusCode = 404;
-    res.end('Not found');
+      const results = [`Number of students: ${filter.length}`];
+      const fields = Object.keys(namesByField);
+      for (const field of fields) {
+        const names = namesByField[field];
+        const count = names.length;
+        const list = names.join(', ');
+        results.push(`Number of students in ${field}: ${count}. List: ${list}`);
+      }
+      return results;
+    })
+    .catch(() => {
+      throw new Error('Cannot load the database');
+    });
+}
+const app = http.createServer((req, res) => {
+  const reqUrl = url.parse(req.url).pathname;
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  if (reqUrl === '/') {
+    res.end('Hello Holberton School!');
+  } else if (reqUrl === '/students') {
+    const path = process.argv[2];
+    res.write('This is the list of our students\n');
+    countStudents(path)
+      .then((data) => {
+        res.end(data.join('\n'));
+      })
+      .catch((err) => {
+        res.end(err.message);
+      });
   }
 });
+// eslint-disable-next-line jest/require-hook
+app.listen(1245);
 
-const PORT = 1245;
-const HOST = '127.0.0.1';
-
-server.listen(PORT, HOST, () => {
-  console.log(`Server is running at http://${HOST}:${PORT}/`);
-});
-
-module.exports = server;
+module.exports = app;
