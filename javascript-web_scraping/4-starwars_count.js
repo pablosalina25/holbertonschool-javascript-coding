@@ -14,6 +14,6 @@ request(apiUrl, function (error, response, body) {
 
   const films = JSON.parse(body);
   const count = films.results.filter((film) => film.characters.includes(`https://swapi-api.hbtn.io/api/people/${characterId}/`)).length;
-  
+
   console.log(count);
 });
